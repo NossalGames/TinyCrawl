@@ -4,17 +4,16 @@ using System.Collections.Generic;
 
 public class CreateCave : MonoBehaviour
 {
-	public GameObject player; //the player object
 	public GameObject block; //the basic floor object
 	public int width; //width of the map
 	public int height; //height of the map
 	public int xBorder; //minimum border on the x axis
 	public int yBorder; //minimum border on the y axis
 	public int deathRequire; //number of enpty cells around the miner for it to die
-	public float minSize;
-	public int minCleanup;
-	public bool hollowed;
-	public bool cleanUp;
+	public float minSize; //minimun fraction of the map that must be removed
+	public int minCleanup; //the minimum number of empty cells around the block to remove it
+	public bool hollowed; //if the map will be 'hollowed'
+	public bool cleanUp; //if all small clumps will be removed
 	void Start ()
 	{
 		float minCells = (width*height)/minSize; //minimum cave size
@@ -90,31 +89,17 @@ public class CreateCave : MonoBehaviour
 							}
 						}
 					}
-					bool spawnBlock = true;
 					if (hollowed && numVoid == 0){
-						spawnBlock = false;
+						cells[x][y] = false;
 					}
 					if (cleanUp && numVoid >= minCleanup){
-						spawnBlock = false;
-					}
-					if (spawnBlock){
-						Instantiate (block, new Vector2 (x, y), Quaternion.identity); //create an actual block there
+						cells[x][y] = false;
 					}
 				}
 			}
 		}
-		bool playerSpawned = false;
-		for (int x = xBorder; x < width-xBorder; x++){
-			for (int y = yBorder; y < height-yBorder; y++){
-				if (((!cells[x][y]&&!cells[x+1][y])&&(!cells[x][y+1]&&!cells[x+1][y+1]))&&(!cells[x][y+2]&&!cells[x+1][y+2])){
-					Instantiate(player,new Vector2(x+1f,y+1.5f),Quaternion.identity);
-					playerSpawned = true;
-					break;
-				}
-			}
-			if (playerSpawned){
-				break;
-			}
-		}
+		CreateTile tiles = GetComponent<CreateTile>();
+		tiles.map = cells;
+		BroadcastMessage("InstantiateTiles",SendMessageOptions.DontRequireReceiver);
 	}
 }
